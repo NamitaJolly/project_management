@@ -41,6 +41,11 @@ import { EmployeeService } from '../../services/employee.service';
         </div>
       </div>
 
+      <!-- API Error Banner -->
+      <div *ngIf="apiError" class="error-banner">
+        ⚠️ {{ apiError }}
+      </div>
+
       <!-- Employees Grid -->
       <div class="employees-grid">
         <div *ngFor="let emp of filteredEmployees()" class="card employee-card">
@@ -62,21 +67,10 @@ import { EmployeeService } from '../../services/employee.service';
             <span>Experience: <strong>{{ emp.experienceYears }} Years</strong></span>
           </div>
 
-          <!-- Capacity Meter -->
-          <div class="capacity-section">
-            <div class="cap-header">
-              <span class="cap-title">Available Capacity:</span>
-              <span class="cap-value" [ngClass]="getCapacityTextClass(emp.availableCapacityPercent)">
-                {{ emp.availableCapacityPercent }}% / {{ emp.totalCapacityPercent }}%
-              </span>
-            </div>
-
-            <div class="capacity-track">
-              <div class="capacity-fill" 
-                   [ngClass]="getCapacityClass(emp.availableCapacityPercent)"
-                   [style.width.%]="emp.availableCapacityPercent">
-              </div>
-            </div>
+          <!-- Allocation Status Badge -->
+          <div class="allocation-status-badge" [ngClass]="getStatusBadgeClass(emp.availableCapacityPercent)">
+            <span class="status-dot"></span>
+            <span>{{ getStatusText(emp.availableCapacityPercent) }}</span>
           </div>
 
           <!-- Skills Badges -->
@@ -115,16 +109,9 @@ import { EmployeeService } from '../../services/employee.service';
               <input type="text" [(ngModel)]="newEmp.designation" placeholder="e.g. Senior Angular Architect">
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label>Experience (Years) *</label>
-                <input type="number" min="0" max="30" [(ngModel)]="newEmp.experienceYears">
-              </div>
-
-              <div class="form-group">
-                <label>Total Capacity (%) *</label>
-                <input type="number" min="10" max="100" [(ngModel)]="newEmp.totalCapacityPercent">
-              </div>
+            <div class="form-group">
+              <label>Experience (Years) *</label>
+              <input type="number" min="0" max="30" [(ngModel)]="newEmp.experienceYears">
             </div>
 
             <div class="form-group">
@@ -278,25 +265,48 @@ import { EmployeeService } from '../../services/employee.service';
       padding: 6px 10px;
       border-radius: 6px;
     }
-    .capacity-section {
-      display: flex;
-      flex-direction: column;
+    .allocation-status-badge {
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
-    }
-    .cap-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.78rem;
-    }
-    .cap-title {
-      color: #94a3b8;
-    }
-    .cap-value {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
       font-weight: 700;
+      width: fit-content;
     }
-    .cap-value.high { color: #34d399; }
-    .cap-value.medium { color: #fbbf24; }
-    .cap-value.low { color: #f87171; }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .allocation-status-badge.available {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+    .allocation-status-badge.available .status-dot {
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+    }
+    .allocation-status-badge.partial {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+    }
+    .allocation-status-badge.partial .status-dot {
+      background: #f59e0b;
+      box-shadow: 0 0 6px #f59e0b;
+    }
+    .allocation-status-badge.allocated {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .allocation-status-badge.allocated .status-dot {
+      background: #ef4444;
+      box-shadow: 0 0 6px #ef4444;
+    }
     .skills-block {
       display: flex;
       flex-direction: column;
@@ -350,12 +360,21 @@ import { EmployeeService } from '../../services/employee.service';
       gap: 10px;
       margin-top: 14px;
     }
+    .error-banner {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 0.9rem;
+    }
   `]
 })
 export class EmployeeDirectoryComponent implements OnInit {
   employees: Employee[] = [];
   searchKeyword: string = '';
   filterDesignation: string = 'ALL';
+  apiError: string = '';
 
   showModal: boolean = false;
   newEmp: Employee = {
@@ -376,9 +395,20 @@ export class EmployeeDirectoryComponent implements OnInit {
   }
 
   loadEmployees(): void {
+    this.apiError = '';
     this.employeeService.getAll().subscribe({
-      next: (list) => this.employees = list,
-      error: (err) => console.error('Failed to load employees', err)
+      next: (list) => { this.employees = list; this.apiError = ''; },
+      error: (err) => {
+        console.error('Failed to load employees', err);
+        const status = err?.status;
+        if (status === 401 || status === 403) {
+          this.apiError = 'Session expired or unauthorized. Please log out and log back in.';
+        } else if (status === 0) {
+          this.apiError = 'Cannot reach server. Make sure the backend is running on port 8080.';
+        } else {
+          this.apiError = `Failed to load employees (Error ${status}). Try refreshing.`;
+        }
+      }
     });
   }
 
@@ -458,15 +488,15 @@ export class EmployeeDirectoryComponent implements OnInit {
     return name ? name.split(' ').map(p => p[0]).join('').substring(0, 2).toUpperCase() : '??';
   }
 
-  getCapacityClass(cap: number): string {
-    if (cap > 50) return 'high';
-    if (cap >= 25) return 'medium';
-    return 'low';
+  getStatusBadgeClass(cap: number): string {
+    if (cap >= 75) return 'available';
+    if (cap > 0) return 'partial';
+    return 'allocated';
   }
 
-  getCapacityTextClass(cap: number): string {
-    if (cap > 50) return 'high';
-    if (cap >= 25) return 'medium';
-    return 'low';
+  getStatusText(cap: number): string {
+    if (cap >= 75) return 'Available on Bench';
+    if (cap > 0) return 'Active on Projects';
+    return 'Fully Committed';
   }
 }

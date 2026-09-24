@@ -40,62 +40,56 @@ import { EmployeeService } from '../../services/employee.service';
           </div>
           <div class="kpi-val">{{ stats?.activeProjects || 0 }}</div>
           <div class="kpi-footer">
-            <span class="sub-stat">Total: <strong>{{ stats?.totalProjects || 0 }}</strong></span>
-            <span class="sub-stat-sep">•</span>
-            <span class="sub-stat">Planning: <strong>{{ stats?.planningProjects || 0 }}</strong></span>
-            <span class="sub-stat-sep">•</span>
-            <span class="sub-stat">Done: <strong>{{ stats?.completedProjects || 0 }}</strong></span>
+            <span class="sub-stat">Projects in active execution</span>
           </div>
         </div>
 
         <!-- Total Talent Pool KPI -->
         <div class="card kpi-card">
           <div class="kpi-top">
-            <span class="kpi-label">Total Engineering Talent</span>
+            <span class="kpi-label">Engineering Talent</span>
             <div class="kpi-icon indigo">👥</div>
           </div>
-          <div class="kpi-val">{{ stats?.totalEmployees || 0 }}</div>
+          <div class="kpi-val">{{ stats?.totalEmployees || allEmployees.length || 0 }}</div>
           <div class="kpi-footer">
-            <span class="sub-stat">Total Capacity: <strong>{{ stats?.totalCapacity || 0 }}%</strong></span>
-            <span class="sub-stat-sep">•</span>
-            <span class="sub-stat">Allocated: <strong>{{ stats?.allocatedCapacity || 0 }}%</strong></span>
+            <span class="sub-stat">Total software engineers</span>
           </div>
         </div>
 
-        <!-- Resource Utilization Rate KPI -->
+        <!-- Resource Allocation Rate KPI -->
         <div class="card kpi-card highlight-card">
           <div class="kpi-top">
-            <span class="kpi-label">Resource Utilization Rate</span>
+            <span class="kpi-label">Team Allocation Rate</span>
             <div class="kpi-icon green">📈</div>
           </div>
           <div class="utilization-metric-row">
-            <div class="kpi-val text-accent">{{ stats?.resourceUtilizationRate || 0 }}%</div>
-            <span class="util-badge" [ngClass]="getUtilizationBadgeClass(stats?.resourceUtilizationRate || 0)">
-              {{ getUtilizationStatusText(stats?.resourceUtilizationRate || 0) }}
+            <div class="kpi-val text-accent">{{ teamUtilizationRate || 50 }}%</div>
+            <span class="util-badge" [ngClass]="getUtilizationBadgeClass(teamUtilizationRate || 50)">
+              {{ getUtilizationStatusText(teamUtilizationRate || 50) }}
             </span>
           </div>
           
-          <!-- Visual Utilization Progress Bar -->
+          <!-- Visual Allocation Progress Bar -->
           <div class="progress-bar-container">
             <div class="progress-track">
-              <div class="progress-fill" [style.width.%]="stats?.resourceUtilizationRate || 0"></div>
+              <div class="progress-fill" [style.width.%]="teamUtilizationRate || 50"></div>
             </div>
             <div class="progress-meta">
-              <span>{{ stats?.allocatedCapacity || 0 }}% Allocated</span>
-              <span>{{ stats?.availableCapacity || 0 }}% Free Capacity</span>
+              <span>{{ assignedEmployeesCount }} Assigned</span>
+              <span>{{ benchEmployeesCount }} on Bench</span>
             </div>
           </div>
         </div>
 
-        <!-- Bench Availability KPI -->
+        <!-- Bench Talent Available KPI -->
         <div class="card kpi-card">
           <div class="kpi-top">
-            <span class="kpi-label">Available Free Capacity</span>
+            <span class="kpi-label">Available on Bench</span>
             <div class="kpi-icon amber">⚡</div>
           </div>
-          <div class="kpi-val text-amber">{{ stats?.availableCapacity || 0 }}%</div>
+          <div class="kpi-val text-amber">{{ benchEmployeesCount }}</div>
           <div class="kpi-footer">
-            <span class="sub-stat">Ready to assign across active & planning pipelines</span>
+            <span class="sub-stat">Engineers ready to deploy</span>
           </div>
         </div>
 
@@ -139,7 +133,7 @@ import { EmployeeService } from '../../services/employee.service';
           <div class="content-header">
             <div>
               <h2 class="section-title">Available Talent Bench</h2>
-              <p class="section-sub">Engineers with high available capacity</p>
+              <p class="section-sub">Engineers ready for immediate assignment</p>
             </div>
             <a routerLink="/employees" class="view-all-link">All Employees →</a>
           </div>
@@ -159,9 +153,8 @@ import { EmployeeService } from '../../services/employee.service';
                 </div>
               </div>
 
-              <div class="bench-cap-box">
-                <span class="bench-cap-num">{{ emp.availableCapacityPercent }}%</span>
-                <span class="bench-cap-label">Available</span>
+              <div class="bench-status-box">
+                <span class="bench-badge">🟢 Available</span>
               </div>
             </div>
           </div>
@@ -439,19 +432,18 @@ import { EmployeeService } from '../../services/employee.service';
       font-size: 0.7rem;
       color: #94a3b8;
     }
-    .bench-cap-box {
+    .bench-status-box {
       display: flex;
-      flex-direction: column;
-      align-items: flex-end;
+      align-items: center;
     }
-    .bench-cap-num {
-      font-size: 1.1rem;
-      font-weight: 800;
+    .bench-badge {
+      font-size: 0.78rem;
+      font-weight: 700;
       color: #34d399;
-    }
-    .bench-cap-label {
-      font-size: 0.7rem;
-      color: #94a3b8;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 4px 10px;
+      border-radius: 20px;
     }
   `]
 })
@@ -459,6 +451,10 @@ export class DashboardComponent implements OnInit {
   stats: DashboardSummary | null = null;
   activeProjectsList: Project[] = [];
   benchEmployees: Employee[] = [];
+  allEmployees: Employee[] = [];
+  assignedEmployeesCount: number = 0;
+  benchEmployeesCount: number = 0;
+  teamUtilizationRate: number = 0;
 
   constructor(
     private dashboardService: DashboardService,
@@ -489,11 +485,17 @@ export class DashboardComponent implements OnInit {
   loadBenchEmployees(): void {
     this.employeeService.getAll().subscribe({
       next: (employees) => {
-        // Filter employees with available capacity >= 50%
+        this.allEmployees = employees;
         this.benchEmployees = employees
-          .filter(e => e.availableCapacityPercent >= 50)
-          .sort((a, b) => b.availableCapacityPercent - a.availableCapacityPercent)
+          .filter(e => (e.availableCapacityPercent || 0) >= 50)
           .slice(0, 5);
+
+        this.benchEmployeesCount = employees.filter(e => (e.availableCapacityPercent || 0) >= 50).length;
+        this.assignedEmployeesCount = employees.filter(e => (e.availableCapacityPercent || 0) < 100).length;
+
+        if (employees.length > 0) {
+          this.teamUtilizationRate = Math.round((this.assignedEmployeesCount / employees.length) * 100);
+        }
       },
       error: (err) => console.error('Failed to load bench talent', err)
     });

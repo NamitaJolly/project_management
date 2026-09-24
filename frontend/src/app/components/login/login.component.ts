@@ -8,8 +8,8 @@ import { AuthService } from '../../auth/auth.service';
   template: `
     <div class="auth-container">
       <div class="card auth-card">
-        <h2>⚡ PulsePMI Login</h2>
-        <p class="subtitle">Resource Management Portal</p>
+        <h2>🌊 TeamFlow Login</h2>
+        <p class="subtitle">Team & Project Workspace Portal</p>
         <div class="error" *ngIf="error">{{error}}</div>
         <form (ngSubmit)="onSubmit()">
           <div class="form-group"><label>Username</label><input type="text" [(ngModel)]="username" name="username" required></div>

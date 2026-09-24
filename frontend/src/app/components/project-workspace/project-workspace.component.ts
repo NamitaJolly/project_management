@@ -28,6 +28,11 @@ import { ResourceMappingModalComponent } from '../resource-mapping-modal/resourc
         </div>
       </div>
 
+      <!-- Project Load Error Banner -->
+      <div *ngIf="apiError" class="error-banner-top">
+        ⚠️ {{ apiError }}
+      </div>
+
       <!-- Project Selector Ribbon -->
       <div class="projects-ribbon">
         <div *ngFor="let p of projects"
@@ -52,14 +57,23 @@ import { ResourceMappingModalComponent } from '../resource-mapping-modal/resourc
         <div class="project-details-card card">
           <div class="card-header">
             <div class="header-left">
-              <span class="badge" [ngClass]="getStatusBadgeClass(selectedProject.status)">
-                {{ selectedProject.status }}
-              </span>
+              <div class="status-selector-wrap">
+                <label class="status-label">Status:</label>
+                <select [ngModel]="selectedProject.status" 
+                        (ngModelChange)="updateProjectStatus($event)"
+                        class="status-select-btn"
+                        [ngClass]="getStatusBadgeClass(selectedProject.status)"
+                        title="Click to change project status">
+                  <option value="PLANNING">📋 PLANNING</option>
+                  <option value="IN_PROGRESS">⚡ IN PROGRESS</option>
+                  <option value="COMPLETED">✅ COMPLETED</option>
+                </select>
+              </div>
               <span class="client-pill">Client: {{ selectedProject.client }}</span>
             </div>
             
             <button class="btn btn-primary" (click)="openResourceModal()">
-              <span>⚡ Map & Assign Resources</span>
+              <span>⚡ Map &amp; Assign Resources</span>
             </button>
           </div>
 
@@ -153,10 +167,7 @@ import { ResourceMappingModalComponent } from '../resource-mapping-modal/resourc
 
               <div class="allocation-col">
                 <span class="allocation-percent-badge">
-                  {{ assignment.allocationPercent }}% FTE
-                </span>
-                <span class="avail-remaining">
-                  Capacity: {{ assignment.employee.availableCapacityPercent }}% Available
+                  Assigned Member
                 </span>
               </div>
 
@@ -337,10 +348,52 @@ import { ResourceMappingModalComponent } from '../resource-mapping-modal/resourc
       justify-content: space-between;
       align-items: center;
     }
-    .header-left {
+    .status-selector-wrap {
       display: flex;
-      gap: 8px;
       align-items: center;
+      gap: 8px;
+    }
+    .status-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .status-select-btn {
+      appearance: none;
+      -webkit-appearance: none;
+      padding: 6px 30px 6px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 10px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%2394a3b8' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    }
+    .status-select-btn.badge-primary {
+      background-color: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+      border: 1px solid #3b82f6;
+    }
+    .status-select-btn.badge-warning {
+      background-color: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid #f59e0b;
+    }
+    .status-select-btn.badge-success {
+      background-color: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid #10b981;
+    }
+    .status-select-btn option {
+      background-color: #1e293b;
+      color: #f8fafc;
+      font-weight: 600;
     }
     .client-pill {
       font-size: 0.8rem;
@@ -581,12 +634,21 @@ import { ResourceMappingModalComponent } from '../resource-mapping-modal/resourc
       animation: spin 0.8s linear infinite;
       margin: 0 auto 8px;
     }
+    .error-banner-top {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 0.9rem;
+    }
   `]
 })
 export class ProjectWorkspaceComponent implements OnInit {
   projects: Project[] = [];
   selectedProject: Project | null = null;
   assignedTeam: ProjectAssignment[] = [];
+  apiError: string = '';
 
   isLoadingTeam: boolean = false;
   showResourceModal: boolean = false;
@@ -612,14 +674,26 @@ export class ProjectWorkspaceComponent implements OnInit {
   }
 
   loadProjects(): void {
+    this.apiError = '';
     this.projectService.getAll().subscribe({
       next: (projects) => {
         this.projects = projects;
+        this.apiError = '';
         if (projects.length > 0 && !this.selectedProject) {
           this.selectProject(projects[0]);
         }
       },
-      error: (err) => console.error('Failed to fetch projects', err)
+      error: (err) => {
+        console.error('Failed to fetch projects', err);
+        const status = err?.status;
+        if (status === 401 || status === 403) {
+          this.apiError = 'Session expired or unauthorized. Please log out and log back in.';
+        } else if (status === 0) {
+          this.apiError = 'Cannot reach server. Make sure the backend is running on port 8080.';
+        } else {
+          this.apiError = `Failed to load projects (Error ${status}). Try refreshing.`;
+        }
+      }
     });
   }
 
@@ -628,6 +702,25 @@ export class ProjectWorkspaceComponent implements OnInit {
     if (project.id) {
       this.loadAssignments(project.id);
     }
+  }
+
+  updateProjectStatus(newStatus: ProjectStatus): void {
+    if (!this.selectedProject || !this.selectedProject.id) return;
+    const updated: Project = {
+      ...this.selectedProject,
+      status: newStatus
+    };
+
+    this.projectService.update(this.selectedProject.id, updated).subscribe({
+      next: (res) => {
+        this.selectedProject = res;
+        const index = this.projects.findIndex(p => p.id === res.id);
+        if (index !== -1) {
+          this.projects[index] = res;
+        }
+      },
+      error: (err) => alert('Failed to update project status: ' + (err?.error?.message || err.message))
+    });
   }
 
   loadAssignments(projectId: number): void {

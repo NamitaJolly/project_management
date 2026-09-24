@@ -11,9 +11,9 @@ import { AuthService } from '../../auth/auth.service';
     <header class="navbar">
       <div class="nav-container">
         <div class="brand-group" routerLink="/dashboard">
-          <div class="logo-icon">⚡</div>
+          <div class="logo-icon">🌊</div>
           <div class="brand-text">
-            <span class="brand-title">Pulse<span class="brand-highlight">PMI</span></span>
+            <span class="brand-title">Team<span class="brand-highlight">Flow</span></span>
             <span class="brand-subtitle">Project & Resource Allocator</span>
           </div>
         </div>

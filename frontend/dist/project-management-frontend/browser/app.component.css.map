@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["angular:styles/component:css;da0752b559c1764bb61b429192a56434a1cb80eca7394a241f0beb1b91b42882;C:/Users/Dell/.gemini/antigravity/scratch/PulsePMI-Complete-Source/frontend/src/app/app.component.ts"],
+  "sourcesContent": ["\n    .app-layout { min-height: 100vh; display: flex; flex-direction: column; }\n    .main-content { flex: 1; }\n  "],
+  "mappings": ";AACI,CAAC;AAAa,cAAY;AAAO,WAAS;AAAM,kBAAgB;AAAQ;AACxE,CAAC;AAAe,QAAM;AAAG;",
+  "names": []
+}
