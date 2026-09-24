@@ -31,8 +31,31 @@ import { AuthService } from '../../auth/auth.service';
 
           <div class="form-group">
             <label>Password *</label>
-            <input type="password" [(ngModel)]="password" name="password" placeholder="At least 6 characters" required>
-            <span class="field-hint" *ngIf="password && password.length < 6">Password must be at least 6 characters</span>
+            <input type="password" [(ngModel)]="password" name="password" placeholder="Create strong password" required>
+            
+            <!-- Live Password Requirements Checklist -->
+            <div class="password-checklist">
+              <div class="req-item" [class.met]="hasMinLength()">
+                <span class="req-icon">{{ hasMinLength() ? '✓' : '•' }}</span>
+                <span>At least 6 characters</span>
+              </div>
+              <div class="req-item" [class.met]="hasUppercase()">
+                <span class="req-icon">{{ hasUppercase() ? '✓' : '•' }}</span>
+                <span>At least 1 uppercase letter (A-Z)</span>
+              </div>
+              <div class="req-item" [class.met]="hasLowercase()">
+                <span class="req-icon">{{ hasLowercase() ? '✓' : '•' }}</span>
+                <span>At least 1 lowercase letter (a-z)</span>
+              </div>
+              <div class="req-item" [class.met]="hasNumber()">
+                <span class="req-icon">{{ hasNumber() ? '✓' : '•' }}</span>
+                <span>At least 1 number (0-9)</span>
+              </div>
+              <div class="req-item" [class.met]="hasSpecialChar()">
+                <span class="req-icon">{{ hasSpecialChar() ? '✓' : '•' }}</span>
+                <span>At least 1 special character (!&#64;#$%^&*)</span>
+              </div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -52,14 +75,40 @@ import { AuthService } from '../../auth/auth.service';
     </div>
   `,
   styles: [`
-    .auth-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; padding: 20px; }
-    .auth-card { width: 100%; max-width: 440px; padding: 36px; text-align: center; }
+    .auth-container { display: flex; justify-content: center; align-items: center; min-height: 85vh; padding: 20px; }
+    .auth-card { width: 100%; max-width: 460px; padding: 36px; text-align: center; }
     .subtitle { color: var(--text-secondary, #94a3b8); margin-bottom: 20px; font-size: 0.88rem; }
     .form-group { margin-bottom: 16px; text-align: left; }
     .form-group label { display: block; margin-bottom: 6px; color: var(--text-secondary, #94a3b8); font-size: 0.85rem; font-weight: 600; }
     .form-group input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color, #334155); background: var(--bg-main, #0f172a); color: white; box-sizing: border-box; font-size: 0.92rem; }
     .form-group input:focus { border-color: #3b82f6; outline: none; }
     .field-hint { display: block; font-size: 0.75rem; color: #f87171; margin-top: 4px; }
+    .password-checklist {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .req-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .req-item.met {
+      color: #34d399;
+      font-weight: 600;
+    }
+    .req-icon {
+      font-weight: 700;
+      width: 12px;
+    }
     .w-100 { width: 100%; padding: 12px; margin-top: 8px; }
     .footer { margin-top: 20px; font-size: 0.9rem; color: var(--text-secondary, #94a3b8); }
     .footer a { color: var(--primary, #3b82f6); text-decoration: none; font-weight: 600; }
@@ -83,6 +132,34 @@ export class RegisterComponent {
     return emailRegex.test(this.email.trim());
   }
 
+  hasMinLength(): boolean {
+    return this.password.length >= 6;
+  }
+
+  hasUppercase(): boolean {
+    return /[A-Z]/.test(this.password);
+  }
+
+  hasLowercase(): boolean {
+    return /[a-z]/.test(this.password);
+  }
+
+  hasNumber(): boolean {
+    return /[0-9]/.test(this.password);
+  }
+
+  hasSpecialChar(): boolean {
+    return /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(this.password);
+  }
+
+  isPasswordValid(): boolean {
+    return this.hasMinLength() &&
+           this.hasUppercase() &&
+           this.hasLowercase() &&
+           this.hasNumber() &&
+           this.hasSpecialChar();
+  }
+
   onSubmit() {
     this.error = '';
     this.successMessage = '';
@@ -97,8 +174,28 @@ export class RegisterComponent {
       return;
     }
 
-    if (!this.password || this.password.length < 6) {
+    if (!this.hasMinLength()) {
       this.error = 'Password must be at least 6 characters long.';
+      return;
+    }
+
+    if (!this.hasUppercase()) {
+      this.error = 'Password must contain at least one uppercase letter (A-Z).';
+      return;
+    }
+
+    if (!this.hasLowercase()) {
+      this.error = 'Password must contain at least one lowercase letter (a-z).';
+      return;
+    }
+
+    if (!this.hasNumber()) {
+      this.error = 'Password must contain at least one number (0-9).';
+      return;
+    }
+
+    if (!this.hasSpecialChar()) {
+      this.error = 'Password must contain at least one special character (!@#$%^&*).';
       return;
     }
 
@@ -125,4 +222,5 @@ export class RegisterComponent {
     });
   }
 }
+
 

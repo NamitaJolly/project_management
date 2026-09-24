@@ -1,14 +1,17 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { AuthService } from './auth/auth.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-root', standalone: true, imports: [CommonModule, RouterOutlet, NavbarComponent],
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, RouterOutlet, NavbarComponent],
   template: `
     <div class="app-layout">
-      <app-navbar *ngIf="isLoggedIn$ | async"></app-navbar>
+      <app-navbar *ngIf="showNavbar"></app-navbar>
       <main class="main-content"><router-outlet></router-outlet></main>
     </div>
   `,
@@ -18,8 +21,15 @@ import { AuthService } from './auth/auth.service';
   `]
 })
 export class AppComponent {
-  isLoggedIn$;
-  constructor(private authService: AuthService) {
-    this.isLoggedIn$ = this.authService.isLoggedIn$;
+  showNavbar = false;
+
+  constructor(private authService: AuthService, private router: Router) {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      const url = event.urlAfterRedirects || event.url;
+      const isAuthPage = url.includes('/login') || url.includes('/register') || url === '/';
+      this.showNavbar = !isAuthPage && !!this.authService.getToken();
+    });
   }
 }
