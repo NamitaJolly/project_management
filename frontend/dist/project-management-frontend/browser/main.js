@@ -34568,7 +34568,7 @@ var AuthService = class _AuthService {
   constructor(http, router) {
     this.http = http;
     this.router = router;
-    this.apiUrl = "http://localhost:8080/api/auth";
+    this.apiUrl = "https://project-management-1-8cue.onrender.com/api/auth";
     this.loggedIn = new BehaviorSubject(this.hasToken());
     this.isLoggedIn$ = this.loggedIn.asObservable();
   }
@@ -34782,7 +34782,7 @@ var AppComponent = class _AppComponent {
 var DashboardService = class _DashboardService {
   constructor(http) {
     this.http = http;
-    this.apiUrl = "http://localhost:8080/api/dashboard/stats";
+    this.apiUrl = "https://project-management-1-8cue.onrender.com/api/dashboard/stats";
   }
   getStats() {
     return this.http.get(this.apiUrl);
@@ -34801,7 +34801,7 @@ var DashboardService = class _DashboardService {
 var ProjectService = class _ProjectService {
   constructor(http) {
     this.http = http;
-    this.apiUrl = "http://localhost:8080/api/projects";
+    this.apiUrl = "https://project-management-1-8cue.onrender.com/api/projects";
   }
   getAll(status) {
     let params = new HttpParams();
@@ -34836,7 +34836,7 @@ var ProjectService = class _ProjectService {
 var EmployeeService = class _EmployeeService {
   constructor(http) {
     this.http = http;
-    this.apiUrl = "http://localhost:8080/api/employees";
+    this.apiUrl = "https://project-management-1-8cue.onrender.com/api/employees";
   }
   getAll() {
     return this.http.get(this.apiUrl);
@@ -41293,7 +41293,7 @@ var ReactiveFormsModule = class _ReactiveFormsModule {
 var AssignmentService = class _AssignmentService {
   constructor(http) {
     this.http = http;
-    this.apiUrl = "http://localhost:8080/api/assignments";
+    this.apiUrl = "https://project-management-1-8cue.onrender.com/api/assignments";
   }
   getAll(projectId, employeeId) {
     let params = new HttpParams();

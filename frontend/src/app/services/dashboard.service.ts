@@ -7,7 +7,7 @@ import { DashboardSummary } from '../models/dashboard.model';
   providedIn: 'root'
 })
 export class DashboardService {
-  private apiUrl = 'http://localhost:8080/api/dashboard/stats';
+  private apiUrl = 'https://project-management-1-8cue.onrender.com/api/dashboard/stats';
 
   constructor(private http: HttpClient) {}
 

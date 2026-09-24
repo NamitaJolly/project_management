@@ -7,7 +7,7 @@ import { Project, ProjectStatus } from '../models/project.model';
   providedIn: 'root'
 })
 export class ProjectService {
-  private apiUrl = 'http://localhost:8080/api/projects';
+  private apiUrl = 'https://project-management-1-8cue.onrender.com/api/projects';
 
   constructor(private http: HttpClient) {}
 

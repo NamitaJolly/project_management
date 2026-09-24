@@ -7,7 +7,7 @@ import { AssignmentRequest, ProjectAssignment } from '../models/assignment.model
   providedIn: 'root'
 })
 export class AssignmentService {
-  private apiUrl = 'http://localhost:8080/api/assignments';
+  private apiUrl = 'https://project-management-1-8cue.onrender.com/api/assignments';
 
   constructor(private http: HttpClient) {}
 

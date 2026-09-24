@@ -7,7 +7,7 @@ import { Employee, EmployeeSkillMatch } from '../models/employee.model';
   providedIn: 'root'
 })
 export class EmployeeService {
-  private apiUrl = 'http://localhost:8080/api/employees';
+  private apiUrl = 'https://project-management-1-8cue.onrender.com/api/employees';
 
   constructor(private http: HttpClient) {}
 
