@@ -17,7 +17,7 @@ public class DashboardController {
         this.dashboardService = dashboardService;
     }
 
-    @GetMapping("/stats")
+    @GetMapping({"/stats", "/summary"})
     public ResponseEntity<DashboardSummaryDto> getDashboardSummary() {
         return ResponseEntity.ok(dashboardService.getDashboardSummary());
     }
