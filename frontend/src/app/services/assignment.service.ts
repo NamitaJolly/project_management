@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AssignmentRequest, ProjectAssignment } from '../models/assignment.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AssignmentService {
-  private apiUrl = 'https://project-management-1-8cue.onrender.com/api/assignments';
+  private apiUrl = `${environment.apiUrl}/assignments`;
 
   constructor(private http: HttpClient) {}
 

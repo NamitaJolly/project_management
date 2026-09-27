@@ -64,7 +64,6 @@ import { ResourceMappingModalComponent } from '../resource-mapping-modal/resourc
                         class="status-select-btn"
                         [ngClass]="getStatusBadgeClass(selectedProject.status)"
                         title="Click to change project status">
-                  <option value="PLANNING">📋 PLANNING</option>
                   <option value="IN_PROGRESS">⚡ IN PROGRESS</option>
                   <option value="COMPLETED">✅ COMPLETED</option>
                 </select>
@@ -96,9 +95,9 @@ import { ResourceMappingModalComponent } from '../resource-mapping-modal/resourc
             </div>
 
             <div class="meta-item">
-              <span class="meta-label">Total Allocated Effort</span>
+              <span class="meta-label">Current Phase</span>
               <span class="meta-value">
-                📊 {{ getTotalAllocation() }}% FTE
+                ⚡ {{ selectedProject.status }}
               </span>
             </div>
           </div>
@@ -231,7 +230,6 @@ import { ResourceMappingModalComponent } from '../resource-mapping-modal/resourc
             <div class="form-group">
               <label>Status</label>
               <select [(ngModel)]="newProject.status">
-                <option value="PLANNING">PLANNING</option>
                 <option value="IN_PROGRESS">IN_PROGRESS</option>
                 <option value="COMPLETED">COMPLETED</option>
               </select>
@@ -659,7 +657,7 @@ export class ProjectWorkspaceComponent implements OnInit {
     client: '',
     description: '',
     startDate: new Date().toISOString().substring(0, 10),
-    status: 'PLANNING',
+    status: 'IN_PROGRESS',
     requiredSkills: []
   };
   newProjectSkillsInput: string = '';
@@ -689,7 +687,7 @@ export class ProjectWorkspaceComponent implements OnInit {
         if (status === 401 || status === 403) {
           this.apiError = 'Session expired or unauthorized. Please log out and log back in.';
         } else if (status === 0) {
-          this.apiError = 'Cannot reach server. Make sure the backend is running on port 8080.';
+          this.apiError = 'Cannot reach server. If running locally, please start your backend in Eclipse on port 8080. If on hosted cloud (Render), please wait ~30 seconds for the server to wake up and refresh.';
         } else {
           this.apiError = `Failed to load projects (Error ${status}). Try refreshing.`;
         }
@@ -757,7 +755,7 @@ export class ProjectWorkspaceComponent implements OnInit {
   }
 
   removeAssignment(assignment: ProjectAssignment): void {
-    if (confirm(`Are you sure you want to unassign ${assignment.employee.name} (${assignment.allocationPercent}% effort)? This will restore their available capacity.`)) {
+    if (confirm(`Release ${assignment.employee.name} from ${this.selectedProject?.projectName || 'this project'}?`)) {
       this.assignmentService.remove(assignment.id).subscribe({
         next: () => {
           if (this.selectedProject?.id) {
@@ -775,7 +773,7 @@ export class ProjectWorkspaceComponent implements OnInit {
       client: '',
       description: '',
       startDate: new Date().toISOString().substring(0, 10),
-      status: 'PLANNING',
+      status: 'IN_PROGRESS',
       requiredSkills: []
     };
     this.newProjectSkillsInput = '';
@@ -812,7 +810,6 @@ export class ProjectWorkspaceComponent implements OnInit {
   getStatusBadgeClass(status: ProjectStatus): string {
     switch (status) {
       case 'IN_PROGRESS': return 'badge-primary';
-      case 'PLANNING': return 'badge-warning';
       case 'COMPLETED': return 'badge-success';
       default: return 'badge-neutral';
     }

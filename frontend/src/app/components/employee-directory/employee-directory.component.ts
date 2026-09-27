@@ -404,7 +404,7 @@ export class EmployeeDirectoryComponent implements OnInit {
         if (status === 401 || status === 403) {
           this.apiError = 'Session expired or unauthorized. Please log out and log back in.';
         } else if (status === 0) {
-          this.apiError = 'Cannot reach server. Make sure the backend is running on port 8080.';
+          this.apiError = 'Cannot reach server. If running locally, please start your backend in Eclipse on port 8080. If on hosted cloud (Render), please wait ~30 seconds for the server to wake up and refresh.';
         } else {
           this.apiError = `Failed to load employees (Error ${status}). Try refreshing.`;
         }

@@ -18,8 +18,8 @@ import { AssignmentService } from '../../services/assignment.service';
         <!-- Header -->
         <div class="modal-header">
           <div>
-            <div class="modal-subtitle">RESOURCE ALLOCATION ENGINE</div>
-            <h2 class="modal-title">Map Team to: {{ project.projectName }}</h2>
+            <div class="modal-subtitle">TEAM & RESOURCE ASSIGNMENT</div>
+            <h2 class="modal-title">Assign Team to: {{ project.projectName }}</h2>
           </div>
           <button class="close-btn" (click)="closeModal()">✕</button>
         </div>
@@ -41,13 +41,8 @@ import { AssignmentService } from '../../services/assignment.service';
 
           <div class="filter-row">
             <div class="filter-group">
-              <label class="filter-label">Min Experience (Years): {{ minExperience }} yrs</label>
+              <label class="filter-label">Min Experience: {{ minExperience }} yrs</label>
               <input type="range" min="0" max="10" step="1" [(ngModel)]="minExperience" (input)="searchCandidates()" class="slider">
-            </div>
-
-            <div class="filter-group">
-              <label class="filter-label">Min Available Capacity: {{ minCapacity }}%</label>
-              <input type="range" min="0" max="100" step="5" [(ngModel)]="minCapacity" (input)="searchCandidates()" class="slider">
             </div>
           </div>
         </div>
@@ -61,18 +56,19 @@ import { AssignmentService } from '../../services/assignment.service';
 
           <div *ngIf="isLoading" class="loading-state">
             <div class="spinner"></div>
-            <span>Analyzing skills and capacities...</span>
+            <span>Analyzing skills and engineers...</span>
           </div>
 
           <div *ngIf="!isLoading && candidateMatches.length === 0" class="empty-state">
-            <span>No employees match the selected criteria. Try lowering the experience or capacity filters.</span>
+            <span>No employees match the selected criteria. Try lowering the experience filter.</span>
           </div>
 
           <div class="candidate-list" *ngIf="!isLoading">
             <div *ngFor="let match of candidateMatches" 
                  class="candidate-card"
                  [class.active]="selectedMatch?.employee?.id === match.employee.id"
-                 (click)="selectCandidate(match)">
+                 [class.assigned-this]="isAssignedToThisProject(match.employee.id!)"
+                 [class.assigned-other]="isAssignedToOtherProject(match.employee.id!)">
               
               <div class="candidate-main">
                 <div class="candidate-avatar">
@@ -86,7 +82,23 @@ import { AssignmentService } from '../../services/assignment.service';
                           [ngClass]="getScoreBadgeClass(match.matchPercentage)">
                       {{ match.matchPercentage | number:'1.0-0' }}% Match
                     </span>
+
+                    <!-- Assigned to this project badge with release date -->
+                    <span *ngIf="isAssignedToThisProject(match.employee.id!)" class="badge badge-assigned-this">
+                      ✓ On This Project (Release: {{ getAssignment(match.employee.id!)?.endDate || 'Ongoing' }})
+                    </span>
+
+                    <!-- Assigned to other project badge with release date -->
+                    <span *ngIf="isAssignedToOtherProject(match.employee.id!)" class="badge badge-assigned-other">
+                      💼 Assigned to {{ getAssignment(match.employee.id!)?.project?.projectName }} (Release: {{ getAssignment(match.employee.id!)?.endDate || 'Ongoing' }})
+                    </span>
+
+                    <!-- Available badge -->
+                    <span *ngIf="!getAssignment(match.employee.id!)" class="badge badge-available">
+                      🟢 Available on Bench
+                    </span>
                   </div>
+
                   <div class="candidate-role">{{ match.employee.designation }} • {{ match.employee.experienceYears }} yrs exp</div>
                   
                   <!-- Matched & Missing Skills -->
@@ -100,20 +112,21 @@ import { AssignmentService } from '../../services/assignment.service';
                   </div>
                 </div>
 
-                <!-- Capacity meter on card -->
-                <div class="candidate-capacity-col">
-                  <div class="cap-label">
-                    <span>Available:</span>
-                    <strong>{{ match.employee.availableCapacityPercent }}%</strong>
-                  </div>
-                  <div class="capacity-track">
-                    <div class="capacity-fill" 
-                         [ngClass]="getCapacityClass(match.employee.availableCapacityPercent)"
-                         [style.width.%]="match.employee.availableCapacityPercent">
-                    </div>
-                  </div>
-                  <button class="btn btn-sm select-btn" [ngClass]="selectedMatch?.employee?.id === match.employee.id ? 'btn-success' : 'btn-primary'">
-                    {{ selectedMatch?.employee?.id === match.employee.id ? '✓ Selected' : 'Select' }}
+                <!-- Action Button Col -->
+                <div class="candidate-action-col">
+                  <!-- If already assigned to THIS project: show Release button -->
+                  <button *ngIf="isAssignedToThisProject(match.employee.id!)"
+                          class="btn btn-sm btn-danger"
+                          (click)="releaseEmployee(match.employee.id!)">
+                    ✕ Release
+                  </button>
+
+                  <!-- If not assigned or on another project: show Select / Assign button -->
+                  <button *ngIf="!isAssignedToThisProject(match.employee.id!)"
+                          class="btn btn-sm"
+                          [ngClass]="selectedMatch?.employee?.id === match.employee.id ? 'btn-success' : 'btn-primary'"
+                          (click)="selectCandidate(match)">
+                    {{ selectedMatch?.employee?.id === match.employee.id ? '✓ Selected' : '+ Assign' }}
                   </button>
                 </div>
               </div>
@@ -125,23 +138,15 @@ import { AssignmentService } from '../../services/assignment.service';
         <div *ngIf="selectedMatch" class="assignment-form-section" id="assignmentForm">
           <div class="form-title">
             <span>Assign <strong>{{ selectedMatch.employee.name }}</strong> to {{ project.projectName }}</span>
-            <span class="avail-badge">Available Capacity: {{ selectedMatch.employee.availableCapacityPercent }}%</span>
+            <span *ngIf="isAssignedToOtherProject(selectedMatch.employee.id!)" class="badge-reassign-warning">
+              ⚠️ Currently on {{ getAssignment(selectedMatch.employee.id!)?.project?.projectName }} (Release: {{ getAssignment(selectedMatch.employee.id!)?.endDate || 'Ongoing' }})
+            </span>
           </div>
 
           <div class="form-grid">
             <div class="form-group">
               <label>Assigned Role *</label>
-              <input type="text" [(ngModel)]="assignedRole" placeholder="e.g. Lead Developer, Cloud Engineer">
-            </div>
-
-            <div class="form-group">
-              <label>Allocation Effort (% of time) *</label>
-              <div class="allocation-input-row">
-                <input type="number" min="1" [max]="selectedMatch.employee.availableCapacityPercent" [(ngModel)]="allocationPercent" class="number-input">
-                <span class="input-suffix">%</span>
-                <input type="range" min="1" [max]="selectedMatch.employee.availableCapacityPercent" [(ngModel)]="allocationPercent" class="slider flex-1">
-              </div>
-              <span class="cap-helper">Max available for {{ selectedMatch.employee.name }}: {{ selectedMatch.employee.availableCapacityPercent }}%</span>
+              <input type="text" [(ngModel)]="assignedRole" placeholder="e.g. Lead Developer, Cloud Architect, UI Engineer">
             </div>
 
             <div class="form-group">
@@ -150,7 +155,7 @@ import { AssignmentService } from '../../services/assignment.service';
             </div>
 
             <div class="form-group">
-              <label>End Date</label>
+              <label>Release / End Date (Optional)</label>
               <input type="date" [(ngModel)]="endDate">
             </div>
           </div>
@@ -162,10 +167,10 @@ import { AssignmentService } from '../../services/assignment.service';
           <div class="assignment-actions">
             <button class="btn btn-secondary" (click)="selectedMatch = null">Cancel Selection</button>
             <button class="btn btn-primary" 
-                    [disabled]="isSubmitting || allocationPercent <= 0 || allocationPercent > selectedMatch.employee.availableCapacityPercent"
+                    [disabled]="isSubmitting || !assignedRole.trim()"
                     (click)="submitAssignment()">
-              <span *ngIf="!isSubmitting">⚡ Confirm & Assign {{ allocationPercent }}% to Project</span>
-              <span *ngIf="isSubmitting">Assigning Resource...</span>
+              <span *ngIf="!isSubmitting">⚡ Confirm Assignment to {{ project.projectName }}</span>
+              <span *ngIf="isSubmitting">Assigning...</span>
             </button>
           </div>
         </div>
@@ -176,7 +181,7 @@ import { AssignmentService } from '../../services/assignment.service';
   styles: [`
     .modal-content {
       width: 100%;
-      max-width: 850px;
+      max-width: 900px;
       max-height: 90vh;
       overflow-y: auto;
       display: flex;
@@ -255,7 +260,7 @@ import { AssignmentService } from '../../services/assignment.service';
     }
     .filter-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 20px;
     }
     .slider {
@@ -291,7 +296,7 @@ import { AssignmentService } from '../../services/assignment.service';
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 280px;
+      max-height: 320px;
       overflow-y: auto;
       padding-right: 4px;
     }
@@ -300,7 +305,6 @@ import { AssignmentService } from '../../services/assignment.service';
       border: 1px solid #334155;
       border-radius: 10px;
       padding: 12px 16px;
-      cursor: pointer;
       transition: all 0.2s;
     }
     .candidate-card:hover {
@@ -311,6 +315,14 @@ import { AssignmentService } from '../../services/assignment.service';
       border-color: #3b82f6;
       background-color: rgba(59, 130, 246, 0.08);
       box-shadow: 0 0 0 1px #3b82f6;
+    }
+    .candidate-card.assigned-this {
+      border-color: rgba(16, 185, 129, 0.35);
+      background-color: rgba(16, 185, 129, 0.04);
+    }
+    .candidate-card.assigned-other {
+      border-color: rgba(245, 158, 11, 0.35);
+      background-color: rgba(245, 158, 11, 0.04);
     }
     .candidate-main {
       display: flex;
@@ -339,7 +351,8 @@ import { AssignmentService } from '../../services/assignment.service';
     .name-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     .candidate-name {
       font-weight: 700;
@@ -349,6 +362,36 @@ import { AssignmentService } from '../../services/assignment.service';
     .candidate-role {
       font-size: 0.8rem;
       color: #94a3b8;
+    }
+    .badge-assigned-this {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .badge-assigned-other {
+      background-color: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .badge-available {
+      background-color: rgba(59, 130, 246, 0.12);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .badge-reassign-warning {
+      background-color: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
     }
     .match-skills-breakdown {
       display: flex;
@@ -372,23 +415,10 @@ import { AssignmentService } from '../../services/assignment.service';
       color: #64748b;
       border: 1px solid rgba(100, 116, 139, 0.2);
     }
-    .candidate-capacity-col {
-      width: 130px;
+    .candidate-action-col {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
-      align-items: flex-end;
+      align-items: center;
       flex-shrink: 0;
-    }
-    .cap-label {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      display: flex;
-      gap: 4px;
-    }
-    .select-btn {
-      width: 100%;
-      margin-top: 4px;
     }
     .assignment-form-section {
       background-color: #182234;
@@ -406,18 +436,16 @@ import { AssignmentService } from '../../services/assignment.service';
       align-items: center;
       font-size: 0.95rem;
       color: #cbd5e1;
-    }
-    .avail-badge {
-      font-size: 0.75rem;
-      color: #34d399;
-      background: rgba(16, 185, 129, 0.15);
-      padding: 2px 8px;
-      border-radius: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
     .form-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.5fr 1fr 1fr;
       gap: 14px;
+    }
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
     }
     .form-group {
       display: flex;
@@ -429,37 +457,31 @@ import { AssignmentService } from '../../services/assignment.service';
       font-weight: 600;
       color: #94a3b8;
     }
-    .allocation-input-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .number-input {
-      width: 70px;
-      padding: 8px 10px;
+    .form-group input {
+      padding: 8px 12px;
       background-color: #0f172a;
       border: 1px solid #334155;
       border-radius: 6px;
       color: #f8fafc;
-      font-weight: 700;
-      font-size: 0.95rem;
-    }
-    .input-suffix {
-      font-weight: 700;
-      color: #94a3b8;
       font-size: 0.9rem;
     }
-    .flex-1 {
-      flex: 1;
-    }
-    .cap-helper {
-      font-size: 0.72rem;
-      color: #94a3b8;
+    .form-group input:focus {
+      border-color: #3b82f6;
+      outline: none;
     }
     .btn-success {
       background-color: #10b981 !important;
       color: white !important;
       border-color: #10b981 !important;
+    }
+    .btn-danger {
+      background-color: rgba(239, 68, 68, 0.15) !important;
+      color: #f87171 !important;
+      border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    }
+    .btn-danger:hover {
+      background-color: rgba(239, 68, 68, 0.3) !important;
+      color: #fca5a5 !important;
     }
     .error-banner {
       background-color: rgba(239, 68, 68, 0.15);
@@ -501,13 +523,12 @@ export class ResourceMappingModalComponent implements OnInit {
 
   selectedSkills: string[] = [];
   minExperience: number = 0;
-  minCapacity: number = 0;
 
   candidateMatches: EmployeeSkillMatch[] = [];
   selectedMatch: EmployeeSkillMatch | null = null;
+  allAssignments: ProjectAssignment[] = [];
 
   assignedRole: string = '';
-  allocationPercent: number = 50;
   startDate: string = '';
   endDate: string = '';
 
@@ -526,7 +547,47 @@ export class ResourceMappingModalComponent implements OnInit {
       this.startDate = this.project.startDate || new Date().toISOString().substring(0, 10);
       this.endDate = this.project.endDate || '';
       this.assignedRole = 'Project Contributor';
+      this.loadAllAssignments();
       this.searchCandidates();
+    }
+  }
+
+  loadAllAssignments(): void {
+    this.assignmentService.getAll().subscribe({
+      next: (assignments) => {
+        this.allAssignments = assignments;
+      },
+      error: (err) => console.error('Failed to load assignments', err)
+    });
+  }
+
+  getAssignment(employeeId: number): ProjectAssignment | undefined {
+    return this.allAssignments.find(a => a.employee?.id === employeeId);
+  }
+
+  isAssignedToThisProject(employeeId: number): boolean {
+    const ass = this.getAssignment(employeeId);
+    return !!ass && ass.project?.id === this.project?.id;
+  }
+
+  isAssignedToOtherProject(employeeId: number): boolean {
+    const ass = this.getAssignment(employeeId);
+    return !!ass && ass.project?.id !== this.project?.id;
+  }
+
+  releaseEmployee(employeeId: number): void {
+    const assignment = this.getAssignment(employeeId);
+    if (!assignment || !assignment.id) return;
+
+    if (confirm(`Release this engineer from ${this.project.projectName}?`)) {
+      this.assignmentService.remove(assignment.id).subscribe({
+        next: () => {
+          this.allAssignments = this.allAssignments.filter(a => a.id !== assignment.id);
+          this.assigned.emit(assignment);
+          this.searchCandidates();
+        },
+        error: (err) => alert('Failed to release resource: ' + (err?.error?.message || err.message))
+      });
     }
   }
 
@@ -548,7 +609,7 @@ export class ResourceMappingModalComponent implements OnInit {
     this.employeeService.search(
       this.selectedSkills,
       this.minExperience,
-      this.minCapacity
+      0
     ).subscribe({
       next: (results) => {
         this.candidateMatches = results;
@@ -564,13 +625,7 @@ export class ResourceMappingModalComponent implements OnInit {
   selectCandidate(match: EmployeeSkillMatch): void {
     this.selectedMatch = match;
     this.errorMessage = '';
-    
-    // Default allocation to min(50, available capacity)
-    if (match.employee.availableCapacityPercent > 0) {
-      this.allocationPercent = Math.min(50, match.employee.availableCapacityPercent);
-    } else {
-      this.allocationPercent = 0;
-    }
+    this.assignedRole = match.employee.designation || 'Project Contributor';
 
     setTimeout(() => {
       const el = document.getElementById('assignmentForm');
@@ -583,13 +638,8 @@ export class ResourceMappingModalComponent implements OnInit {
       return;
     }
 
-    if (this.allocationPercent <= 0) {
-      this.errorMessage = 'Please allocate at least 1% effort.';
-      return;
-    }
-
-    if (this.allocationPercent > this.selectedMatch.employee.availableCapacityPercent) {
-      this.errorMessage = `Cannot allocate ${this.allocationPercent}%: employee only has ${this.selectedMatch.employee.availableCapacityPercent}% available capacity.`;
+    if (!this.assignedRole.trim()) {
+      this.errorMessage = 'Please specify an assigned role.';
       return;
     }
 
@@ -599,8 +649,8 @@ export class ResourceMappingModalComponent implements OnInit {
     const request: AssignmentRequest = {
       projectId: this.project.id,
       employeeId: this.selectedMatch.employee.id,
-      assignedRole: this.assignedRole.trim() || 'Contributor',
-      allocationPercent: Number(this.allocationPercent),
+      assignedRole: this.assignedRole.trim(),
+      allocationPercent: 100,
       startDate: this.startDate,
       endDate: this.endDate && this.endDate.trim().length > 0 ? this.endDate.trim() : undefined
     };
@@ -613,7 +663,7 @@ export class ResourceMappingModalComponent implements OnInit {
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.errorMessage = err?.error?.message || (err?.error?.fieldErrors ? Object.values(err.error.fieldErrors).join(', ') : 'Failed to assign employee. Please verify capacity and dates.');
+        this.errorMessage = err?.error?.message || (err?.error?.fieldErrors ? Object.values(err.error.fieldErrors).join(', ') : 'Failed to assign employee.');
       }
     });
   }
@@ -635,11 +685,5 @@ export class ResourceMappingModalComponent implements OnInit {
     if (score >= 50) return 'badge-primary';
     if (score > 0) return 'badge-warning';
     return 'badge-neutral';
-  }
-
-  getCapacityClass(cap: number): string {
-    if (cap > 50) return 'high';
-    if (cap >= 25) return 'medium';
-    return 'low';
   }
 }
