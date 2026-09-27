@@ -23,7 +23,7 @@ public class DashboardService {
     public DashboardSummaryDto getDashboardSummary() {
         long totalProjects = projectRepository.count();
         long activeProjects = projectRepository.countByStatus(ProjectStatus.IN_PROGRESS);
-        long planningProjects = projectRepository.countByStatus(ProjectStatus.PLANNING);
+        long planningProjects = 0;
         long completedProjects = projectRepository.countByStatus(ProjectStatus.COMPLETED);
 
         List<Employee> employees = employeeRepository.findAll();

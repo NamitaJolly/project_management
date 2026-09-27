@@ -50,6 +50,21 @@ VALUES (14, 'Chloe Dupont', 'chloe.dupont@company.com', 'DevOps & Infrastructure
 INSERT INTO employees (id, name, email, designation, experience_years, total_capacity_percent, available_capacity_percent)
 VALUES (15, 'Siddharth Nair', 'siddharth.nair@company.com', 'QA Automation & Performance Engineer', 4, 100, 100);
 
+INSERT INTO employees (id, name, email, designation, experience_years, total_capacity_percent, available_capacity_percent)
+VALUES (16, 'Aarav Patel', 'aarav.patel@company.com', 'Senior AI & ML Architect', 8, 100, 75);
+
+INSERT INTO employees (id, name, email, designation, experience_years, total_capacity_percent, available_capacity_percent)
+VALUES (17, 'Elena Rostova', 'elena.rostova@company.com', 'Full-Stack React & Node Lead', 6, 100, 50);
+
+INSERT INTO employees (id, name, email, designation, experience_years, total_capacity_percent, available_capacity_percent)
+VALUES (18, 'Kofi Mensah', 'kofi.mensah@company.com', 'DevSecOps & Platform Engineer', 5, 100, 100);
+
+INSERT INTO employees (id, name, email, designation, experience_years, total_capacity_percent, available_capacity_percent)
+VALUES (19, 'Mei Ling', 'mei.ling@company.com', 'Angular UI/UX Design System Specialist', 4, 100, 60);
+
+INSERT INTO employees (id, name, email, designation, experience_years, total_capacity_percent, available_capacity_percent)
+VALUES (20, 'Gabriel Santos', 'gabriel.santos@company.com', 'High-Throughput Distributed Systems Engineer', 7, 100, 100);
+
 -- ------------------------------------------------------------------------------
 -- Seed Employee Skills
 -- ------------------------------------------------------------------------------
@@ -169,6 +184,41 @@ INSERT INTO employee_skills (employee_id, skill) VALUES (15, 'CI/CD');
 INSERT INTO employee_skills (employee_id, skill) VALUES (15, 'Postman');
 INSERT INTO employee_skills (employee_id, skill) VALUES (15, 'TypeScript');
 
+-- 16. Aarav Patel
+INSERT INTO employee_skills (employee_id, skill) VALUES (16, 'Python');
+INSERT INTO employee_skills (employee_id, skill) VALUES (16, 'AI');
+INSERT INTO employee_skills (employee_id, skill) VALUES (16, 'Docker');
+INSERT INTO employee_skills (employee_id, skill) VALUES (16, 'AWS');
+INSERT INTO employee_skills (employee_id, skill) VALUES (16, 'Kafka');
+
+-- 17. Elena Rostova
+INSERT INTO employee_skills (employee_id, skill) VALUES (17, 'React');
+INSERT INTO employee_skills (employee_id, skill) VALUES (17, 'TypeScript');
+INSERT INTO employee_skills (employee_id, skill) VALUES (17, 'REST APIs');
+INSERT INTO employee_skills (employee_id, skill) VALUES (17, 'SQL');
+
+-- 18. Kofi Mensah
+INSERT INTO employee_skills (employee_id, skill) VALUES (18, 'Kubernetes');
+INSERT INTO employee_skills (employee_id, skill) VALUES (18, 'AWS');
+INSERT INTO employee_skills (employee_id, skill) VALUES (18, 'CyberSecurity');
+INSERT INTO employee_skills (employee_id, skill) VALUES (18, 'CI/CD');
+INSERT INTO employee_skills (employee_id, skill) VALUES (18, 'Linux');
+
+-- 19. Mei Ling
+INSERT INTO employee_skills (employee_id, skill) VALUES (19, 'Angular');
+INSERT INTO employee_skills (employee_id, skill) VALUES (19, 'TypeScript');
+INSERT INTO employee_skills (employee_id, skill) VALUES (19, 'UI/UX');
+INSERT INTO employee_skills (employee_id, skill) VALUES (19, 'CSS3');
+INSERT INTO employee_skills (employee_id, skill) VALUES (19, 'HTML5');
+
+-- 20. Gabriel Santos
+INSERT INTO employee_skills (employee_id, skill) VALUES (20, 'Java');
+INSERT INTO employee_skills (employee_id, skill) VALUES (20, 'Spring Boot');
+INSERT INTO employee_skills (employee_id, skill) VALUES (20, 'Microservices');
+INSERT INTO employee_skills (employee_id, skill) VALUES (20, 'Kafka');
+INSERT INTO employee_skills (employee_id, skill) VALUES (20, 'Redis');
+INSERT INTO employee_skills (employee_id, skill) VALUES (20, 'SQL');
+
 -- ------------------------------------------------------------------------------
 -- Seed Projects (8 High-Impact Industry Projects)
 -- ------------------------------------------------------------------------------
@@ -195,6 +245,18 @@ VALUES (7, 'Zero-Trust Cloud Identity & Threat Prevention', 'CyberFortress Defen
 
 INSERT INTO projects (id, project_name, client, description, start_date, end_date, status)
 VALUES (8, 'IoT Smart Energy & Grid Analytics', 'EcoGrid Utilities', 'Scalable time-series ingestion engine analyzing sensor data from 50,000+ power grid distribution nodes.', '2026-06-01', '2027-04-30', 'PLANNING');
+
+INSERT INTO projects (id, project_name, client, description, start_date, end_date, status)
+VALUES (9, 'AI-Powered Telehealth Diagnostics Engine', 'Novacare Health Systems', 'Edge-deployed real-time conversational AI and diagnostic imaging telemetry for remote outpatient healthcare.', '2026-02-10', '2026-11-20', 'IN_PROGRESS');
+
+INSERT INTO projects (id, project_name, client, description, start_date, end_date, status)
+VALUES (10, 'Decentralized Supply Chain Fraud Detection', 'Vanguard Global Logistics', 'High-throughput ledger verifying custody events and zero-knowledge telemetry across multimodal shipping routes.', '2026-04-01', '2026-12-31', 'PLANNING');
+
+INSERT INTO projects (id, project_name, client, description, start_date, end_date, status)
+VALUES (11, 'Smart City Urban Mobility & Transit Mesh', 'MetroTransit Authority', 'Real-time geospatial fleet routing, dynamic congestion pricing, and commuter mobile app integration.', '2026-01-20', '2026-09-15', 'IN_PROGRESS');
+
+INSERT INTO projects (id, project_name, client, description, start_date, end_date, status)
+VALUES (12, 'Automated Cloud Infrastructure SRE Platform', 'Apex Cloud Technologies', 'Self-healing container orchestrator automating multi-cloud failover, chaos engineering, and cost optimization.', '2025-08-01', '2026-01-15', 'COMPLETED');
 
 -- ------------------------------------------------------------------------------
 -- Seed Project Required Skills
@@ -259,6 +321,34 @@ INSERT INTO project_required_skills (project_id, skill) VALUES (8, 'SQL');
 INSERT INTO project_required_skills (project_id, skill) VALUES (8, 'Docker');
 INSERT INTO project_required_skills (project_id, skill) VALUES (8, 'Python');
 
+-- Project 9 (AI Telehealth)
+INSERT INTO project_required_skills (project_id, skill) VALUES (9, 'Python');
+INSERT INTO project_required_skills (project_id, skill) VALUES (9, 'AI');
+INSERT INTO project_required_skills (project_id, skill) VALUES (9, 'Docker');
+INSERT INTO project_required_skills (project_id, skill) VALUES (9, 'AWS');
+INSERT INTO project_required_skills (project_id, skill) VALUES (9, 'Kafka');
+
+-- Project 10 (Fraud Detection)
+INSERT INTO project_required_skills (project_id, skill) VALUES (10, 'Java');
+INSERT INTO project_required_skills (project_id, skill) VALUES (10, 'Spring Boot');
+INSERT INTO project_required_skills (project_id, skill) VALUES (10, 'Kafka');
+INSERT INTO project_required_skills (project_id, skill) VALUES (10, 'CyberSecurity');
+INSERT INTO project_required_skills (project_id, skill) VALUES (10, 'Microservices');
+
+-- Project 11 (Smart City Transit)
+INSERT INTO project_required_skills (project_id, skill) VALUES (11, 'Angular');
+INSERT INTO project_required_skills (project_id, skill) VALUES (11, 'TypeScript');
+INSERT INTO project_required_skills (project_id, skill) VALUES (11, 'TailwindCSS');
+INSERT INTO project_required_skills (project_id, skill) VALUES (11, 'UI/UX');
+INSERT INTO project_required_skills (project_id, skill) VALUES (11, 'REST APIs');
+
+-- Project 12 (Cloud SRE)
+INSERT INTO project_required_skills (project_id, skill) VALUES (12, 'Kubernetes');
+INSERT INTO project_required_skills (project_id, skill) VALUES (12, 'AWS');
+INSERT INTO project_required_skills (project_id, skill) VALUES (12, 'CI/CD');
+INSERT INTO project_required_skills (project_id, skill) VALUES (12, 'Linux');
+INSERT INTO project_required_skills (project_id, skill) VALUES (12, 'Terraform');
+
 -- ------------------------------------------------------------------------------
 -- Seed Project Assignments (Realistic Multi-Team Allocations)
 -- ------------------------------------------------------------------------------
@@ -292,9 +382,19 @@ VALUES (7, 6, 10, 'Lead Angular UI Architect', 50, '2026-04-15', '2027-01-31');
 INSERT INTO project_assignments (id, project_id, employee_id, assigned_role, allocation_percent, start_date, end_date)
 VALUES (8, 7, 9, 'Principal Security Architect', 40, '2026-01-10', '2026-08-30');
 
+-- Project 9 (AI Telehealth)
+INSERT INTO project_assignments (id, project_id, employee_id, assigned_role, allocation_percent, start_date, end_date)
+VALUES (9, 9, 16, 'Lead AI Research Engineer', 25, '2026-02-10', '2026-11-20');
+
+-- Project 11 (Smart City Transit)
+INSERT INTO project_assignments (id, project_id, employee_id, assigned_role, allocation_percent, start_date, end_date)
+VALUES (10, 11, 19, 'Lead Frontend & UX Architect', 40, '2026-01-20', '2026-09-15');
+
 -- ------------------------------------------------------------------------------
 -- Auto-Increment Sequence Synchronization
 -- ------------------------------------------------------------------------------
-ALTER TABLE employees ALTER COLUMN id RESTART WITH 16;
-ALTER TABLE projects ALTER COLUMN id RESTART WITH 9;
-ALTER TABLE project_assignments ALTER COLUMN id RESTART WITH 9;
+ALTER TABLE employees ALTER COLUMN id RESTART WITH 21;
+ALTER TABLE projects ALTER COLUMN id RESTART WITH 13;
+ALTER TABLE project_assignments ALTER COLUMN id RESTART WITH 11;
+
+

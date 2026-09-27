@@ -27,12 +27,28 @@ public class AuthController {
         if (user.getPassword() == null || user.getPassword().length() < 6) {
             return ResponseEntity.badRequest().body(Map.of("message", "Password must be at least 6 characters long"));
         }
-        if (userRepository.existsByUsername(user.getUsername())) {
+        if (!user.getPassword().matches(".*[A-Z].*")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Password must contain at least one uppercase letter (A-Z)"));
+        }
+        if (!user.getPassword().matches(".*[a-z].*")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Password must contain at least one lowercase letter (a-z)"));
+        }
+        if (!user.getPassword().matches(".*\\d.*")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Password must contain at least one number (0-9)"));
+        }
+        if (!user.getPassword().matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~`].*")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Password must contain at least one special character (!@#$%^&*)"));
+        }
+        String uname = user.getUsername().trim();
+        String email = user.getEmail() != null ? user.getEmail().trim() : null;
+        if (userRepository.existsByUsername(uname)) {
             return ResponseEntity.badRequest().body(Map.of("message", "Username is already taken"));
         }
-        if (user.getEmail() != null && userRepository.existsByEmail(user.getEmail())) {
+        if (email != null && userRepository.existsByEmail(email)) {
             return ResponseEntity.badRequest().body(Map.of("message", "Email is already registered"));
         }
+        user.setUsername(uname);
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("ROLE_RMG");
         userRepository.save(user);
@@ -40,9 +56,10 @@ public class AuthController {
     }
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User loginReq) {
-        String input = loginReq.getUsername() != null ? loginReq.getUsername() : "";
+        String input = loginReq.getUsername() != null ? loginReq.getUsername().trim() : "";
+        String pass = loginReq.getPassword() != null ? loginReq.getPassword() : "";
         User user = userRepository.findByUsernameOrEmail(input, input).orElse(null);
-        if (user != null && passwordEncoder.matches(loginReq.getPassword(), user.getPassword())) {
+        if (user != null && passwordEncoder.matches(pass, user.getPassword())) {
             String token = jwtUtils.generateToken(user.getUsername());
             return ResponseEntity.ok(Map.of("token", token, "username", user.getUsername()));
         }

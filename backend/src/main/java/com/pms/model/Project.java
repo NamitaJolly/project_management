@@ -23,7 +23,7 @@ public class Project {
     @Column(nullable = false)
     private String client;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 4000)
     private String description;
 
     @NotNull(message = "Start date is required")
@@ -36,7 +36,7 @@ public class Project {
     @NotNull(message = "Project status is required")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ProjectStatus status = ProjectStatus.PLANNING;
+    private ProjectStatus status = ProjectStatus.IN_PROGRESS;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "project_required_skills", joinColumns = @JoinColumn(name = "project_id"))
@@ -54,7 +54,7 @@ public class Project {
         this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.status = status != null ? status : ProjectStatus.PLANNING;
+        this.status = status != null ? status : ProjectStatus.IN_PROGRESS;
         this.requiredSkills = requiredSkills != null ? requiredSkills : new ArrayList<>();
     }
 

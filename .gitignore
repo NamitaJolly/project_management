@@ -1,0 +1,18 @@
+# IDE and system files
+.idea/
+.vscode/
+*.iml
+*.DS_Store
+Thumbs.db
+
+# Backend Build & DB
+backend/target/
+backend/derby.log
+backend/derbydb/
+*.log
+
+# Frontend Build & Node
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+.angular/

@@ -17,10 +17,7 @@ public class AssignmentRequest {
     @NotBlank(message = "Assigned role is required")
     private String assignedRole;
 
-    @NotNull(message = "Allocation percent is required")
-    @Min(value = 1, message = "Allocation must be at least 1%")
-    @Max(value = 100, message = "Allocation cannot exceed 100%")
-    private Integer allocationPercent;
+    private Integer allocationPercent = 100;
 
     @NotNull(message = "Start date is required")
     private LocalDate startDate;

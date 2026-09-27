@@ -53,24 +53,18 @@ public class ProjectAssignmentService {
         Employee employee = employeeRepository.findById(request.getEmployeeId())
                 .orElseThrow(() -> new NoSuchElementException("Employee not found with id: " + request.getEmployeeId()));
 
-        if (employee.getAvailableCapacityPercent() < request.getAllocationPercent()) {
-            throw new IllegalStateException(String.format(
-                    "Insufficient capacity: %s only has %d%% capacity available, but requested %d%%.",
-                    employee.getName(),
-                    employee.getAvailableCapacityPercent(),
-                    request.getAllocationPercent()
-            ));
-        }
+        int alloc = request.getAllocationPercent() != null ? request.getAllocationPercent() : 100;
+        int avail = employee.getAvailableCapacityPercent() != null ? employee.getAvailableCapacityPercent() : 100;
 
-        // Reduce available capacity
-        employee.setAvailableCapacityPercent(employee.getAvailableCapacityPercent() - request.getAllocationPercent());
+        // Update employee available capacity
+        employee.setAvailableCapacityPercent(Math.max(0, avail - alloc));
         employeeRepository.save(employee);
 
         ProjectAssignment assignment = new ProjectAssignment();
         assignment.setProject(project);
         assignment.setEmployee(employee);
         assignment.setAssignedRole(request.getAssignedRole());
-        assignment.setAllocationPercent(request.getAllocationPercent());
+        assignment.setAllocationPercent(alloc);
         assignment.setStartDate(request.getStartDate());
         assignment.setEndDate(request.getEndDate());
 
@@ -83,11 +77,10 @@ public class ProjectAssignmentService {
         Employee employee = assignment.getEmployee();
 
         // Restore employee available capacity
-        int restoredCapacity = Math.min(
-                employee.getTotalCapacityPercent(),
-                employee.getAvailableCapacityPercent() + assignment.getAllocationPercent()
-        );
-        employee.setAvailableCapacityPercent(restoredCapacity);
+        int total = employee.getTotalCapacityPercent() != null ? employee.getTotalCapacityPercent() : 100;
+        int current = employee.getAvailableCapacityPercent() != null ? employee.getAvailableCapacityPercent() : 0;
+        int alloc = assignment.getAllocationPercent() != null ? assignment.getAllocationPercent() : 100;
+        employee.setAvailableCapacityPercent(Math.min(total, current + alloc));
         employeeRepository.save(employee);
 
         assignmentRepository.delete(assignment);

@@ -88,8 +88,8 @@ mvn spring-boot:run
 ```
 *(Or open the `backend` directory in IntelliJ IDEA, Eclipse, or VS Code and run `ProjectManagementApplication.java`)*
 
-- The backend will start on **`http://localhost:8080`**.
-- **H2 Console**: Accessible at **`http://localhost:8080/h2-console`**
+- The backend will start on **`https://project-management-1-8cue.onrender.com`**.
+- **H2 Console**: Accessible at **`https://project-management-1-8cue.onrender.com/h2-console`**
   - JDBC URL: `jdbc:h2:mem:projectmgmt`
   - Username: `sa`
   - Password: *(leave blank)*

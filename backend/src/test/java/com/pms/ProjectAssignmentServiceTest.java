@@ -62,7 +62,7 @@ public class ProjectAssignmentServiceTest {
         project.setClient("Acme Corp");
         project.setDescription("Testing core assignment flow");
         project.setStartDate(LocalDate.now());
-        project.setStatus(ProjectStatus.PLANNING);
+        project.setStatus(ProjectStatus.IN_PROGRESS);
         project.setRequiredSkills(Arrays.asList("Java", "Spring Boot"));
         project = projectRepository.save(project);
     }

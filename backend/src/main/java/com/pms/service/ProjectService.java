@@ -45,7 +45,7 @@ public class ProjectService {
     @Transactional
     public Project createProject(Project project) {
         if (project.getStatus() == null) {
-            project.setStatus(ProjectStatus.PLANNING);
+            project.setStatus(ProjectStatus.IN_PROGRESS);
         }
         if (project.getRequiredSkills() == null) {
             project.setRequiredSkills(new ArrayList<>());
